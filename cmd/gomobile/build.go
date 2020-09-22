@@ -12,6 +12,7 @@ import (
 	"io"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"regexp"
 	"strings"
 
@@ -131,11 +132,21 @@ func runBuildImpl(cmd *command) (*packages.Package, error) {
 		if !xcodeAvailable() {
 			return nil, fmt.Errorf("-target=ios requires XCode")
 		}
-		if pkg.Name != "main" {
+		if pkg.Name != "main" || buildIOSTerminal {
 			for _, arch := range targetArchs {
-				if err := goBuild(pkg.PkgPath, darwinEnv[arch]); err != nil {
+				var bargs []string
+				if buildIOSTerminal {
+					bargs = []string{"-ldflags=-w"}
+				}
+				if err := goBuild(pkg.PkgPath, darwinEnv[arch], bargs...); err != nil {
 					return nil, err
 				}
+				cmd := exec.Command("ldid", "-Sentitlements.xml", filepath.Base(pkg.PkgPath))
+				cmd.Dir = buildPath
+				if err := runCmd(cmd); err != nil {
+					return nil, err
+				}
+				//ldid -Sentitlements.xml path/fileName
 			}
 			return pkg, nil
 		}
@@ -213,21 +224,23 @@ func printcmd(format string, args ...interface{}) {
 
 // "Build flags", used by multiple commands.
 var (
-	buildA          bool        // -a
-	buildI          bool        // -i
-	buildN          bool        // -n
-	buildV          bool        // -v
-	buildX          bool        // -x
-	buildO          string      // -o
-	buildGcflags    string      // -gcflags
-	buildLdflags    string      // -ldflags
-	buildTarget     string      // -target
-	buildTrimpath   bool        // -trimpath
-	buildWork       bool        // -work
-	buildBundleID   string      // -bundleid
-	buildIOSVersion string      // -iosversion
-	buildAndroidAPI int         // -androidapi
-	buildTags       stringsFlag // -tags
+	buildA           bool        // -a
+	buildI           bool        // -i
+	buildN           bool        // -n
+	buildV           bool        // -v
+	buildX           bool        // -x
+	buildO           string      // -o
+	buildGcflags     string      // -gcflags
+	buildLdflags     string      // -ldflags
+	buildTarget      string      // -target
+	buildTrimpath    bool        // -trimpath
+	buildWork        bool        // -work
+	buildBundleID    string      // -bundleid
+	buildIOSVersion  string      // -iosversion
+	buildIOSTeamID   string      // -teamid
+	buildIOSTerminal bool        // -terminal
+	buildAndroidAPI  int         // -androidapi
+	buildTags        stringsFlag // -tags
 )
 
 func addBuildFlags(cmd *command) {
@@ -237,6 +250,8 @@ func addBuildFlags(cmd *command) {
 	cmd.flag.StringVar(&buildTarget, "target", "android", "")
 	cmd.flag.StringVar(&buildBundleID, "bundleid", "", "")
 	cmd.flag.StringVar(&buildIOSVersion, "iosversion", "7.0", "")
+	cmd.flag.StringVar(&buildIOSTeamID, "teamid", "iPhone Developer", "")
+	cmd.flag.BoolVar(&buildIOSTerminal, "terminal", false, "")
 	cmd.flag.IntVar(&buildAndroidAPI, "androidapi", minAndroidAPI, "")
 
 	cmd.flag.BoolVar(&buildA, "a", false, "")
