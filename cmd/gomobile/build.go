@@ -132,21 +132,29 @@ func runBuildImpl(cmd *command) (*packages.Package, error) {
 		if !xcodeAvailable() {
 			return nil, fmt.Errorf("-target=ios requires XCode")
 		}
-		if pkg.Name != "main" || buildIOSTerminal {
+		if pkg.Name != "main" {
+			for _, arch := range targetArchs {
+				if err := goBuild(pkg.PkgPath, darwinEnv[arch]); err != nil {
+					return nil, err
+				}
+			}
+			return pkg, nil
+		} else if pkg.Name == "main" && buildIOSTerminal {
 			for _, arch := range targetArchs {
 				var bargs []string
-				if buildIOSTerminal {
-					bargs = []string{"-ldflags=-w"}
+				outPath := filepath.Base(pkg.PkgPath)
+				if buildO != "" {
+					bargs = []string{"-o", buildO}
+					outPath = buildO
 				}
 				if err := goBuild(pkg.PkgPath, darwinEnv[arch], bargs...); err != nil {
 					return nil, err
 				}
-				cmd := exec.Command("ldid", "-Sentitlements.xml", filepath.Base(pkg.PkgPath))
+				cmd := exec.Command("ldid", "-Sentitlements.xml", outPath)
 				cmd.Dir = buildPath
 				if err := runCmd(cmd); err != nil {
 					return nil, err
 				}
-				//ldid -Sentitlements.xml path/fileName
 			}
 			return pkg, nil
 		}

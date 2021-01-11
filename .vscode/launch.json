@@ -11,13 +11,13 @@
             "mode": "auto",
             "program": "${fileDirname}",
             "env": {},
+            "cwd": "/Users/zdypro/Documents/workspace/apple/jailbreak/idockerd",
             "args": [
                 "build",
                 "-target=ios/arm64",
                 "-bundleid=im.app.finder",
                 "-teamid='Apple Development'",
-                "-terminal",
-                "/Users/zdypro/Documents/workspace/dutils/finder/"
+                "-terminal"
             ]
         }
     ]
