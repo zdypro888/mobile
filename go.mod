@@ -1,11 +1,11 @@
 module golang.org/x/mobile
 
-go 1.11
+go 1.16
 
 require (
-	golang.org/x/exp v0.0.0-20200917184745-18d7dbdd5567
-	golang.org/x/image v0.0.0-20200922025426-e59bae62ef32
-	golang.org/x/mod v0.3.1-0.20200828183125-ce943fd02449
-	golang.org/x/sys v0.0.0-20200922070232-aee5d888a860 // indirect
-	golang.org/x/tools v0.0.0-20200921210052-fa0125251cc4
+	golang.org/x/exp v0.0.0-20210625193404-fa9d1d177d71
+	golang.org/x/image v0.0.0-20210628002857-a66eb6448b8d
+	golang.org/x/mod v0.4.2
+	golang.org/x/sys v0.0.0-20210616094352-59db8d763f22 // indirect
+	golang.org/x/tools v0.1.4
 )
